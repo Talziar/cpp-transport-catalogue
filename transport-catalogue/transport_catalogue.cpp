@@ -31,11 +31,12 @@ namespace transport_catalogue {
         return (found == busname_to_bus_.end() ? nullptr : found->second);
     }
 
-    optional<vector<Bus *>> TransportCatalogue::GetBusesByStop(const std::string_view stop_name) const {
-        if (!stopname_to_buses_.contains(stop_name)) {
+    optional<set<Bus *, bus_compare> const *> TransportCatalogue::GetBusesByStop(const std::string_view stop_name) const {
+        auto found = stopname_to_buses_.find(stop_name);
+        if (found == stopname_to_buses_.end()) {
             return nullopt;
         }
-        return vector(stopname_to_buses_.at(stop_name).begin(), stopname_to_buses_.at(stop_name).end());
+        return &(found->second);
     }
 
     BusInfo

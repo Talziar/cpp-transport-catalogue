@@ -41,17 +41,14 @@ namespace transport_catalogue::stat_reader {
         }
 
         void StopRequestPrint(const TransportCatalogue &transport_catalogue, string_view parsed_request, ostream &output) {
-            optional<vector<Bus *>> stop_buses = transport_catalogue.GetBusesByStop(parsed_request);
+            const auto stop_buses = transport_catalogue.GetBusesByStop(parsed_request);
             if (!stop_buses.has_value()) {
                 output << "Stop "s << parsed_request << ": not found"s << endl;
-            } else if (stop_buses.value().empty()) {
+            } else if (stop_buses.value()->empty()) {
                 output << "Stop "s << parsed_request << ": no buses"s << endl;
             } else {
-                sort(stop_buses.value().begin(), stop_buses.value().end(), [](const Bus *lhs, const Bus *rhs) {
-                    return lhs->first < rhs->first;
-                });
                 output << "Stop "s << parsed_request << ": buses"s;
-                for (auto el : stop_buses.value()) {
+                for (const auto el : *stop_buses.value()) {
                     output << ' ' << el->first;
                 }
                 output << endl;
@@ -59,11 +56,11 @@ namespace transport_catalogue::stat_reader {
         }
 
         void BusRequestPrint(const TransportCatalogue &transport_catalogue, string_view parsed_request, ostream &output) {
-            Bus *requested_bus = transport_catalogue.FindBus(parsed_request);
+            const Bus *requested_bus = transport_catalogue.FindBus(parsed_request);
             if (!requested_bus) {
                 output << "Bus "s << parsed_request << ": not found"s << endl;
             } else {
-                BusInfo requested_bus_info = transport_catalogue.GetBusInfo(parsed_request);
+                const BusInfo requested_bus_info = transport_catalogue.GetBusInfo(parsed_request);
                 output << "Bus "s << parsed_request << setprecision(6) << ": "s << requested_bus_info.stop_count_ << " stops on route, "s
                        << requested_bus_info.unique_stop_count_ << " unique stops, "s << requested_bus_info.route_length_ << " route length" << endl;
             }

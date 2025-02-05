@@ -29,6 +29,12 @@ namespace transport_catalogue {
         double route_length_;
     };
 
+    struct bus_compare {
+        bool operator()(const Bus *lhs, const Bus *rhs) const {
+            return std::greater<>()(rhs->first, lhs->first);
+        }
+    };
+
     class TransportCatalogue {
     public:
         void AddStop(const std::string_view stop_name, const geo::Coordinates stop_coordinates);
@@ -37,15 +43,10 @@ namespace transport_catalogue {
         Stop *FindStop(const std::string_view stop_name) const;
         Bus *FindBus(const std::string_view bus_name) const;
 
-        std::optional<std::vector<Bus *>> GetBusesByStop(const std::string_view stop_name) const;
+        std::optional<std::set<Bus *, bus_compare> const *> GetBusesByStop(const std::string_view stop_name) const;
         BusInfo GetBusInfo(const std::string_view bus_name) const;
 
     private:
-        struct bus_compare {
-            bool operator()(const Bus *lhs, const Bus *rhs) const {
-                return std::greater<>()(rhs->first, lhs->first);
-            }
-        };
         std::deque<Stop> stops_;
         std::deque<Bus> buses_;
 
