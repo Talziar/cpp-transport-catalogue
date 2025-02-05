@@ -22,11 +22,13 @@ namespace transport_catalogue {
     }
 
     Stop *TransportCatalogue::FindStop(const string_view stop_name) const {
-        return (stopname_to_stop_.contains(stop_name) ? stopname_to_stop_.at(stop_name) : nullptr);
+        auto found = stopname_to_stop_.find(stop_name);
+        return (found == stopname_to_stop_.end() ? nullptr : found->second);
     }
 
     Bus *TransportCatalogue::FindBus(const string_view bus_name) const {
-        return (busname_to_bus_.contains(bus_name) ? busname_to_bus_.at(bus_name) : nullptr);
+        auto found = busname_to_bus_.find(bus_name);
+        return (found == busname_to_bus_.end() ? nullptr : found->second);
     }
 
     optional<vector<Bus *>> TransportCatalogue::GetBusesByStop(const std::string_view stop_name) const {

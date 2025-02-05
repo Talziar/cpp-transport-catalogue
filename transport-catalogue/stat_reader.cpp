@@ -87,4 +87,15 @@ namespace transport_catalogue::stat_reader {
         }
     }
 
+    void RunFromStream(TransportCatalogue &catalogue, istream &in_stream, ostream &out_stream) {
+        int stat_request_count;
+        in_stream >> stat_request_count >> ws;
+
+        for (int i = 0; i < stat_request_count; ++i) {
+            string line;
+            getline(in_stream, line);
+            ParseAndPrintStat(catalogue, line, out_stream);
+        }
+    }
+
 } // namespace transport_catalogue::stat_reader

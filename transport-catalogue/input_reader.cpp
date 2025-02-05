@@ -128,4 +128,17 @@ namespace transport_catalogue::input_reader {
         }
     }
 
+    void RunFromStream(TransportCatalogue &catalogue, istream &in_stream) {
+        int base_request_count;
+        in_stream >> base_request_count >> ws;
+
+        InputReader reader;
+        for (int i = 0; i < base_request_count; ++i) {
+            string line;
+            getline(cin, line);
+            reader.ParseLine(line);
+        }
+        reader.ApplyCommands(catalogue);
+    }
+
 } // namespace transport_catalogue::input_reader

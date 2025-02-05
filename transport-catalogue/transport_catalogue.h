@@ -4,6 +4,7 @@
 
 #include <deque>
 #include <optional>
+#include <set>
 #include <stdint.h>
 #include <string>
 #include <string_view>
@@ -40,11 +41,16 @@ namespace transport_catalogue {
         BusInfo GetBusInfo(const std::string_view bus_name) const;
 
     private:
+        struct bus_compare {
+            bool operator()(const Bus *lhs, const Bus *rhs) const {
+                return std::greater<>()(rhs->first, lhs->first);
+            }
+        };
         std::deque<Stop> stops_;
         std::deque<Bus> buses_;
 
         std::unordered_map<std::string_view, Stop *> stopname_to_stop_;
-        std::unordered_map<std::string_view, std::unordered_set<Bus *>> stopname_to_buses_;
+        std::unordered_map<std::string_view, std::set<Bus *, bus_compare>> stopname_to_buses_;
         std::unordered_map<std::string_view, Bus *> busname_to_bus_;
     };
 

@@ -4,6 +4,8 @@
 
 namespace transport_catalogue::geo {
 
+    constexpr int earth_radius = 6371000;
+
     struct Coordinates {
         double lat;
         double lng;
@@ -22,7 +24,7 @@ namespace transport_catalogue::geo {
         return acos(sin(from.lat * dr) * sin(to.lat * dr) +
                     cos(from.lat * dr) * cos(to.lat * dr) *
                         cos(abs(from.lng - to.lng) * dr)) *
-               6371000;
+               earth_radius;
     }
 
 } // namespace transport_catalogue::geo

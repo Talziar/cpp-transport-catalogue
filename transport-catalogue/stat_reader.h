@@ -27,4 +27,6 @@ namespace transport_catalogue::stat_reader {
         const TransportCatalogue &transport_catalogue,
         std::string_view request, std::ostream &output);
 
+    void RunFromStream(TransportCatalogue &catalogue, std::istream &in_stream, std::ostream &out_stream);
+
 } // namespace transport_catalogue::stat_reader

@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -24,7 +25,7 @@ namespace transport_catalogue::input_reader {
         };
     } // namespace detail
 
-        class InputReader {
+    class InputReader {
     public:
         void ParseLine(std::string_view line);
 
@@ -33,5 +34,7 @@ namespace transport_catalogue::input_reader {
     private:
         std::vector<detail::CommandDescription> commands_;
     };
+
+    void RunFromStream(TransportCatalogue &catalogue, std::istream &in_stream);
 
 } // namespace transport_catalogue::input_reader
