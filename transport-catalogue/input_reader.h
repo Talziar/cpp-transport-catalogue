@@ -15,13 +15,16 @@ namespace transport_catalogue::input_reader {
                                  Bus };
 
         struct CommandDescription {
-            explicit operator bool() const { return !(type == CommandType::NullType); }
+            CommandDescription() = default;
+            CommandDescription(CommandType type, const std::string &id, const std::string &description) : type_(type), id_(id), description_(description) {}
+
+            explicit operator bool() const { return !(type_ == CommandType::NullType); }
 
             bool operator!() const { return !operator bool(); }
 
-            CommandType type = CommandType::NullType; // Тип команды
-            std::string id;                           // Название маршрута или остановки
-            std::string description;                  // Параметры команды
+            CommandType type_ = CommandType::NullType; // Тип команды
+            std::string id_;                           // Название маршрута или остановки
+            std::string description_;                  // Параметры команды
         };
     } // namespace detail
 

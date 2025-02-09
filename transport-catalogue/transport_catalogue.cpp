@@ -21,6 +21,10 @@ namespace transport_catalogue {
         busname_to_bus_.emplace(buses_.back().first, &buses_.back());
     }
 
+    void TransportCatalogue::SetPreciseDistance(const std::string_view stop_from_name, const std::string_view stop_to_name, uint32_t distance) {
+        stops_to_distance_[{FindStop(stop_from_name), FindStop(stop_to_name)}] = distance;
+    }
+
     Stop *TransportCatalogue::FindStop(const string_view stop_name) const {
         auto found = stopname_to_stop_.find(stop_name);
         return (found == stopname_to_stop_.end() ? nullptr : found->second);
@@ -39,26 +43,38 @@ namespace transport_catalogue {
         return &(found->second);
     }
 
-    BusInfo
-    TransportCatalogue::GetBusInfo(const string_view bus_name) const {
+    uint64_t TransportCatalogue::GetPreciseDistance(Stop const *from, Stop const *to) const {
+        auto found = stops_to_distance_.find({from, to});
+        if (found == nullptr) {
+            found = stops_to_distance_.find({to, from});
+        }
+        return found->second;
+    }
+
+    BusInfo TransportCatalogue::GetBusInfo(const string_view bus_name) const {
         Bus *required_bus = FindBus(bus_name);
         if (required_bus == nullptr) {
             return BusInfo();
         }
 
         BusInfo required_bus_info;
+        unordered_set<string_view> unique_stops;
+        double geographical_distance = 0.0;
+
         required_bus_info.name_ = required_bus->first;
         required_bus_info.stop_count_ = required_bus->second.size();
-        unordered_set<string_view> unique_stops;
 
         for (uint16_t i = 0; i + 1u < required_bus->second.size(); ++i) {
             if (i == 0) {
                 unique_stops.insert(required_bus->second[i]->name_);
             }
             unique_stops.insert(required_bus->second[i + 1]->name_);
-            required_bus_info.route_length_ += geo::ComputeDistance(required_bus->second[i]->coordinates_, required_bus->second[i + 1]->coordinates_);
+
+            required_bus_info.route_length_ += GetPreciseDistance(required_bus->second[i], required_bus->second[i + 1]);
+            geographical_distance += geo::ComputeDistance(required_bus->second[i]->coordinates_, required_bus->second[i + 1]->coordinates_);
         }
         required_bus_info.unique_stop_count_ = unique_stops.size();
+        required_bus_info.curvature_ = (required_bus_info.route_length_ * 1.0) / geographical_distance;
 
         return required_bus_info;
     }

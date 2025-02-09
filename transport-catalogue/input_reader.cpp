@@ -18,7 +18,7 @@ namespace transport_catalogue::input_reader {
             return string.substr(start, string.find_last_not_of(' ') + 1 - start);
         }
 
-        vector<string_view> Split(string_view string, char delim) {
+        vector<string_view> Split(const string_view string, char delim) {
             vector<string_view> result;
 
             size_t pos = 0;
@@ -37,22 +37,35 @@ namespace transport_catalogue::input_reader {
             return result;
         }
 
-        geo::Coordinates ParseCoordinates(string_view str) {
+        geo::Coordinates ParseCoordinates(const CommandDescription &command) {
             static const double nan = std::nan("");
 
-            auto not_space = str.find_first_not_of(' ');
-            auto comma = str.find(',');
+            auto splited_description = Split(command.description_, ',');
 
-            if (comma == str.npos) {
+            if (splited_description.size() < 2) {
                 return {nan, nan};
             }
 
-            auto not_space2 = str.find_first_not_of(' ', comma + 1);
-
-            double lat = stod(string(str.substr(not_space, comma - not_space)));
-            double lng = stod(string(str.substr(not_space2)));
+            double lat = stod(string(splited_description[0]));
+            double lng = stod(string(splited_description[1]));
 
             return {lat, lng};
+        }
+
+        vector<pair<string_view, uint32_t>> ParseStopDistances(const CommandDescription &command) {
+            auto splited_description = Split(command.description_, ',');
+
+            if (splited_description.size() < 3) {
+                return {};
+            }
+
+            vector<pair<string_view, uint32_t>> stop_distances;
+            for (uint16_t i = 2; i < splited_description.size(); ++i) {
+                auto space_pos = splited_description[i].find(' ');
+                auto to_pos = splited_description[i].find("to"s);
+                stop_distances.emplace_back(Trim(splited_description[i].substr(to_pos + 2)), stoi(string(splited_description[i].substr(0, space_pos - 1))));
+            }
+            return stop_distances;
         }
 
         vector<string_view> ParseRoute(string_view route) {
@@ -112,18 +125,27 @@ namespace transport_catalogue::input_reader {
 
         for (auto command_type : command_priority) {
             for (auto command : commands_) {
-                if (command.type != command_type) {
+                if (command.type_ != command_type) {
                     continue;
                 }
-                if (command.type == CommandType::Stop) {
+                if (command.type_ == CommandType::Stop) {
                     catalogue.AddStop(
-                        Trim(command.id),
-                        ParseCoordinates(Trim(command.description)));
+                        Trim(command.id_),
+                        ParseCoordinates(command));
                 } else {
                     catalogue.AddBus(
-                        Trim(command.id),
-                        ParseRoute(Trim(command.description)));
+                        Trim(command.id_),
+                        ParseRoute(Trim(command.description_)));
                 }
+            }
+        }
+
+        for (auto command : commands_) {
+            if (command.type_ != CommandType::Stop) {
+                continue;
+            }
+            for (auto stop_pair : ParseStopDistances(command)) {
+                catalogue.SetPreciseDistance(Trim(command.id_), stop_pair.first, stop_pair.second);
             }
         }
     }

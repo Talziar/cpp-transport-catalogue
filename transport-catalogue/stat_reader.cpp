@@ -62,7 +62,7 @@ namespace transport_catalogue::stat_reader {
             } else {
                 const BusInfo requested_bus_info = transport_catalogue.GetBusInfo(parsed_request);
                 output << "Bus "s << parsed_request << setprecision(6) << ": "s << requested_bus_info.stop_count_ << " stops on route, "s
-                       << requested_bus_info.unique_stop_count_ << " unique stops, "s << requested_bus_info.route_length_ << " route length" << endl;
+                       << requested_bus_info.unique_stop_count_ << " unique stops, "s << requested_bus_info.route_length_ << " route length, "s << requested_bus_info.curvature_ << " curvature"s << endl;
             }
         }
     } // namespace detail
