@@ -13,9 +13,6 @@ namespace transport_catalogue {
 
         std::optional<BusInfo> GetBusInfo(const std::string_view bus_name) const;
 
-        const BusSet GetSortedBuses() const;
-        const StopSet GetSortedStops() const;
-
         void RenderMap(std::ostream &out_stream) const;
 
     private:

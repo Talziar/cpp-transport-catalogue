@@ -19,12 +19,16 @@ namespace transport_catalogue {
 
         Stop const *FindStop(const std::string_view stop_name) const;
         Bus const *FindBus(const std::string_view bus_name) const;
-        BusType GetBusType(const std::string_view bus_name) const;
 
         const std::deque<Stop> &GetStops() const;
+        const StopSet GetSortedStops() const;
+        const std::deque<geo::Coordinates> GetWorkingStopsCoordinates() const;
+
         const std::deque<Bus> &GetBuses() const;
+        const BusSet GetSortedBuses() const;
 
         std::optional<BusSet const *> GetBusesByStop(const std::string_view stop_name) const;
+        std::optional<BusInfo> GetBusInfo(const std::string_view bus_name) const;
 
     private:
         struct StopPairHasher {
@@ -48,18 +52,5 @@ namespace transport_catalogue {
 
         std::unordered_map<std::string_view, Bus const *> busname_to_bus_;
     };
-
-    namespace detail {
-        inline std::deque<geo::Coordinates> GetWorkingStopsCoordinates(const TransportCatalogue &t_c) {
-            std::deque<geo::Coordinates> req_stops;
-            for (const auto &stop : t_c.GetStops()) {
-                auto buses = t_c.GetBusesByStop(stop.name_);
-                if (buses && !buses.value()->empty()) {
-                    req_stops.push_back(stop.coordinates_);
-                }
-            }
-            return req_stops;
-        }
-    } // namespace detail
 
 } // namespace transport_catalogue

@@ -87,17 +87,20 @@ namespace transport_catalogue::renderer {
     class MapRenderer {
     public:
         MapRenderer(MapSettings &&settings, const std::deque<geo::Coordinates> &working_stops_coords);
-
-        void RenderBusLines(const BusSet &buses, svg::Document &document) const;
-        void RenderBusLabels(const BusSet &buses, svg::Document &document) const;
-        void RenderStopSigns(const StopSet &stops, svg::Document &document) const;
-        void RenderStopLabels(const StopSet &stops, svg::Document &document) const;
+        svg::Document Render(const BusSet &&sorted_buses, const StopSet &&sorted_stops) const;
 
     private:
         void RenderBusLine(const Bus *bus, svg::Color cur_color, svg::Document &document) const;
+        void RenderBusLines(const BusSet &buses, svg::Document &document) const;
+
         void RenderBusLabel(const Bus *bus, svg::Color cur_color, const Stop *end_stop, svg::Document &document) const;
+        void RenderBusLabels(const BusSet &buses, svg::Document &document) const;
+
         void RenderStopSign(const Stop *stop, svg::Document &document) const;
+        void RenderStopSigns(const StopSet &stops, svg::Document &document) const;
+
         void RenderStopLabel(const Stop *stop, svg::Document &document) const;
+        void RenderStopLabels(const StopSet &stops, svg::Document &document) const;
 
         MapSettings settings_;
         SphereProjector projector_;

@@ -2,7 +2,7 @@
 
 namespace geo {
 
-    constexpr int earth_radius = 6371000;
+    constexpr int EARTH_RADIUS = 6371000;
 
     struct Coordinates {
         double lat; // Широта
