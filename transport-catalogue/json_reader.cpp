@@ -72,14 +72,14 @@ namespace transport_catalogue::json_reader {
         const auto stop_buses = r_h.GetBusesByStop(stop_name);
 
         if (!stop_buses.has_value()) {
-            return {Dict{{"request_id"s, stat_request.at("id"s)}, {"error_message"s, "not found"s}}};
+            return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("error_message"s).Value("not found"s).EndDict().Build();
         } else {
             Array stop_buses_vector;
             for (const auto el : *stop_buses.value()) {
                 stop_buses_vector.emplace_back(el->first.bus_name);
             }
 
-            return {Dict{{"request_id"s, stat_request.at("id"s)}, {"buses"s, stop_buses_vector}}};
+            return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("buses"s).Value(stop_buses_vector).EndDict().Build();
         }
     }
 
@@ -88,27 +88,16 @@ namespace transport_catalogue::json_reader {
         const auto req_bus_info = r_h.GetBusInfo(bus_name);
 
         if (!req_bus_info) {
-            return {Dict{{"request_id"s, stat_request.at("id"s)}, {"error_message"s, "not found"s}}};
+            return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("error_message"s).Value("not found"s).EndDict().Build();
         } else {
-            return {
-                Dict{
-                    {"curvature"s, Node(req_bus_info->curvature_)},
-                    {"request_id"s, stat_request.at("id"s)},
-                    {"route_length"s, Node(int(req_bus_info->route_length_))},
-                    {"stop_count"s, Node(int(req_bus_info->stop_count_))},
-                    {"unique_stop_count"s, Node(int(req_bus_info->unique_stop_count_))}}};
+            return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("curvature"s).Value(req_bus_info->curvature_).Key("route_length"s).Value(int(req_bus_info->route_length_)).Key("stop_count"s).Value(int(req_bus_info->stop_count_)).Key("unique_stop_count"s).Value(int(req_bus_info->unique_stop_count_)).EndDict().Build();
         }
     }
 
     Node JsonReader::MapRequestFormat(const RequestHandler &r_h, Dict stat_request) {
         ostringstream s_stream;
         r_h.RenderMap(s_stream);
-
-        return {
-            Dict{
-                {"request_id"s, stat_request.at("id"s)},
-                {"map"s, s_stream.str()},
-            }};
+        return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("map"s).Value(s_stream.str()).EndDict().Build();
     }
 
     // ---------- JsonReader ----------
