@@ -34,7 +34,7 @@ namespace transport_catalogue {
         if (found == nullptr) {
             found = stops_to_distance_.find({to, from});
         }
-        return found->second;
+        return (found == nullptr ? geo::ComputeDistance(from->coordinates_, to->coordinates_): found->second);
     }
 
     // ---------- Find ----------

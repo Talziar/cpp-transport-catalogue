@@ -51,6 +51,10 @@ namespace json {
             return *this;
         }
 
+        Value &GetValue() {
+            return *this;
+        }
+
         bool operator==(const Node &other) const { return this->GetValue() == other.GetValue(); }
         bool operator!=(const Node &other) const { return !(*this == other); }
     };

@@ -68,14 +68,14 @@ namespace transport_catalogue::json_reader {
     // ---------- Print Helpers----------
 
     Node JsonReader::StopRequestFormat(const RequestHandler &r_h, Dict stat_request) {
-        const auto stop_name = stat_request.at("name"s).AsString();
+        const string stop_name = stat_request.at("name"s).AsString();
         const auto stop_buses = r_h.GetBusesByStop(stop_name);
 
         if (!stop_buses.has_value()) {
             return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("error_message"s).Value("not found"s).EndDict().Build();
         } else {
             Array stop_buses_vector;
-            for (const auto el : *stop_buses.value()) {
+            for (const auto &el : *stop_buses.value()) {
                 stop_buses_vector.emplace_back(el->first.bus_name);
             }
 
@@ -84,7 +84,7 @@ namespace transport_catalogue::json_reader {
     }
 
     Node JsonReader::BusRequestFormat(const RequestHandler &r_h, Dict stat_request) {
-        const auto bus_name = stat_request.at("name"s).AsString();
+        const string bus_name = stat_request.at("name"s).AsString();
         const auto req_bus_info = r_h.GetBusInfo(bus_name);
 
         if (!req_bus_info) {
@@ -100,6 +100,29 @@ namespace transport_catalogue::json_reader {
         return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("map"s).Value(s_stream.str()).EndDict().Build();
     }
 
+    Node JsonReader::RouteRequestFormat(const RequestHandler &r_h, Dict stat_request) {
+        const string &from = stat_request.at("from"s).AsString();
+        const string &to = stat_request.at("to"s).AsString();
+        const auto req_route = r_h.GetRoute(from, to);
+
+        if (req_route.has_value()) {
+            Array route_items;
+            for (const auto &item : req_route->items) {
+                if (holds_alternative<WaitItem>(item)) {
+                    const WaitItem &wait_item = get<WaitItem>(item);
+                    route_items.push_back(Builder{}.StartDict().Key("type"s).Value("Wait"s).Key("stop_name"s).Value(wait_item.stop_name).Key("time"s).Value(wait_item.time).EndDict().Build());
+                } else {
+                    const BusItem &bus_item = get<BusItem>(item);
+                    route_items.push_back(Builder{}.StartDict().Key("type"s).Value("Bus"s).Key("bus"s).Value(bus_item.bus).Key("span_count"s).Value(bus_item.span_count).Key("time"s).Value(bus_item.time).EndDict().Build());
+                }
+            }
+
+            return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("total_time"s).Value(req_route->total_time).Key("items"s).Value(route_items).EndDict().Build();
+        } else {
+            return Builder{}.StartDict().Key("request_id"s).Value(stat_request.at("id"s).AsInt()).Key("error_message"s).Value("not found"s).EndDict().Build();
+        }
+    }
+
     // ---------- JsonReader ----------
 
     Array JsonReader::GetBaseRequests() const {
@@ -112,6 +135,10 @@ namespace transport_catalogue::json_reader {
 
     Dict JsonReader::GetRenderSettings() const {
         return jsonDocument_.GetRoot().AsMap().at("render_settings").AsMap();
+    }
+
+    Dict JsonReader::GetRoutingSettings() const {
+        return jsonDocument_.GetRoot().AsMap().at("routing_settings").AsMap();
     }
 
     void JsonReader::ApplyBaseRequests(TransportCatalogue &catalogue) const {
@@ -154,6 +181,8 @@ namespace transport_catalogue::json_reader {
                 statJson.push_back(StopRequestFormat(handler, request.AsMap()));
             } else if (cur_type == "Bus"s) {
                 statJson.push_back(BusRequestFormat(handler, request.AsMap()));
+            } else if (cur_type == "Route"s) {
+                statJson.push_back(RouteRequestFormat(handler, request.AsMap()));
             } else {
                 statJson.push_back(MapRequestFormat(handler, request.AsMap()));
             }
@@ -186,13 +215,22 @@ namespace transport_catalogue::json_reader {
             color_palette};
     }
 
+    router::RouterSettings JsonReader::GetRouterSettings() const {
+        auto settings_dict = GetRoutingSettings();
+        return {
+            settings_dict.at("bus_wait_time"s).AsInt(),
+            settings_dict.at("bus_velocity"s).AsDouble(),
+        };
+    }
+
     void Run(TransportCatalogue &catalogue, std::istream &in_stream, std::ostream &out_stream) {
         JsonReader reader(in_stream);
         reader.ApplyBaseRequests(catalogue);
 
         renderer::MapRenderer map_renderer(move(reader.GetMapSettings()), catalogue.GetWorkingStopsCoordinates());
+        router::TransportRouter ts_router(catalogue, reader.GetRouterSettings());
 
-        RequestHandler handler(catalogue, map_renderer);
+        RequestHandler handler(catalogue, map_renderer, ts_router);
         Print(Document(reader.GetStatJson(handler)), out_stream);
     }
 

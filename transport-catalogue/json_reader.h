@@ -7,7 +7,6 @@
 
 #include "json.h"
 #include "json_builder.h"
-#include "map_renderer.h"
 #include "request_handler.h"
 
 namespace transport_catalogue::json_reader {
@@ -19,10 +18,12 @@ namespace transport_catalogue::json_reader {
         json::Array GetBaseRequests() const;
         json::Array GetStatRequests() const;
         json::Dict GetRenderSettings() const;
+        json::Dict GetRoutingSettings() const;
 
         void ApplyBaseRequests(TransportCatalogue &catalogue) const;
         json::Node GetStatJson(const RequestHandler &handler) const;
         renderer::MapSettings GetMapSettings() const;
+        router::RouterSettings GetRouterSettings() const;
 
     private:
         json::Document jsonDocument_;
@@ -38,6 +39,7 @@ namespace transport_catalogue::json_reader {
         static json::Node StopRequestFormat(const RequestHandler &r_h, json::Dict stat_request);
         static json::Node BusRequestFormat(const RequestHandler &r_h, json::Dict stat_request);
         static json::Node MapRequestFormat(const RequestHandler &r_h, json::Dict stat_request);
+        static json::Node RouteRequestFormat(const RequestHandler &r_h, json::Dict stat_request);
     };
 
     void Run(TransportCatalogue &catalogue, std::istream &in_stream, std::ostream &out_stream);

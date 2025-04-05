@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace transport_catalogue {
@@ -61,5 +62,23 @@ namespace transport_catalogue {
 
     private:
         std::hash<Stop const *> stop_ptr_hasher_;
+    };
+
+    struct WaitItem {
+        std::string stop_name;
+        double time;
+    };
+
+    struct BusItem {
+        std::string bus;
+        int span_count;
+        double time;
+    };
+
+    using RouteItem = std::variant<WaitItem, BusItem>;
+
+    struct RouteInfo {
+        double total_time;
+        std::vector<RouteItem> items;
     };
 }

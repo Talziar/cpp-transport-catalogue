@@ -6,8 +6,6 @@ namespace json {
 
     namespace {
 
-        // ---------- Node Loaders ----------
-
         Node LoadNode(istream &input);
 
         Node LoadNullOrBool(std::istream &input) {
